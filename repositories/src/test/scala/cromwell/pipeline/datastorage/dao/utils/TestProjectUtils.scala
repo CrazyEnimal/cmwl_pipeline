@@ -26,14 +26,14 @@ object TestProjectUtils {
   def getDummyProjectConfiguration(
     projectId: ProjectId = getDummyProjectId,
     projectConfigurationId: ProjectConfigurationId = ProjectConfigurationId.randomId,
-    projectFileConfiguration: ProjectFileConfiguration =
-      ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("String")))))
+    wdlParams: WdlParams =
+      WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("String")))))
   ): ProjectConfiguration = {
     val projectConfiguration: ProjectConfiguration = ProjectConfiguration(
       projectConfigurationId,
       projectId,
       active = true,
-      List(projectFileConfiguration),
+      wdlParams,
       ProjectConfigurationVersion.defaultVersion
     )
     projectConfiguration
@@ -43,10 +43,9 @@ object TestProjectUtils {
     ownerId: UserId = TestUserUtils.getDummyUserId,
     name: String = s"project-$randomUuidStr",
     active: Boolean = true,
-    version: PipelineVersion = getDummyPipeLineVersion(),
     visibility: Visibility = Private
   ): LocalProject =
-    LocalProject(projectId, ownerId, name, active, version, visibility)
+    LocalProject(projectId, ownerId, name, active, visibility)
   def getDummyCommit(id: String = randomUuidStr): Commit = Commit(id)
   def getDummyPipeLineVersion(
     v1: Int = 1 + randomInt(),
@@ -59,10 +58,8 @@ object TestProjectUtils {
   ): GitLabRepositoryResponse = GitLabRepositoryResponse(repositoryId)
   def getDummyGitLabVersion(
     version: PipelineVersion = getDummyPipeLineVersion(),
-    message: String = s"message-$randomUuidStr",
-    target: String = s"target-$randomUuidStr",
     commit: Commit = getDummyCommit()
-  ): GitLabVersion = GitLabVersion(version, message, target, commit)
+  ): GitLabVersion = GitLabVersion(commit, version)
   def getDummyFileCommit(
     commitId: String = s"$randomUuidStr"
   ): FileCommit = FileCommit(commitId)
