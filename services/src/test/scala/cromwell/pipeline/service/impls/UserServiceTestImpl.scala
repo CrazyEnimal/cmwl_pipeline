@@ -1,7 +1,9 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
+
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserWithCredentials }
 import cromwell.pipeline.model.wrapper.{ UserEmail, UserId }
+import cromwell.pipeline.service.UserService
 
 import scala.concurrent.Future
 
@@ -25,10 +27,10 @@ class UserServiceTestImpl(users: Seq[UserWithCredentials], testMode: TestMode) e
       case _                  => Future.successful(user.userId)
     }
 
-  override def deactivateUserById(userId: UserId): Future[Option[User]] =
+  override def deactivateUserById(userId: UserId): Future[User] =
     testMode match {
       case WithException(exc) => Future.failed(exc)
-      case _                  => Future.successful(users.headOption.map(user => User.fromUserWithCredentials(user)))
+      case _                  => Future.successful(User.fromUserWithCredentials(users.head))
     }
 
   override def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int] =
@@ -47,7 +49,10 @@ class UserServiceTestImpl(users: Seq[UserWithCredentials], testMode: TestMode) e
 
 object UserServiceTestImpl {
 
-  def apply(testUsers: UserWithCredentials*)(implicit testMode: TestMode = Success): UserServiceTestImpl =
-    new UserServiceTestImpl(testUsers, testMode)
+  def apply(users: UserWithCredentials*): UserServiceTestImpl =
+    new UserServiceTestImpl(users = users, testMode = Success)
+
+  def withException(exception: Throwable): UserServiceTestImpl =
+    new UserServiceTestImpl(users = Seq.empty, testMode = WithException(exception))
 
 }

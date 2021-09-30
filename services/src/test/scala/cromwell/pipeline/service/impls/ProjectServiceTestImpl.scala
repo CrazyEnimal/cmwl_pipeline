@@ -1,7 +1,9 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
+
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.ProjectService
 
 import scala.concurrent.Future
 
@@ -19,13 +21,10 @@ class ProjectServiceTestImpl(projects: Seq[Project], testMode: TestMode) extends
       case _                  => Future.successful(projects.head)
     }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] =
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Project] =
     testMode match {
-      case WithException(exc: VersioningException) => Future.successful(Left(exc))
-      case WithException(exc)                      => Future.failed(exc)
-      case _ =>
-        val newProject = TestProjectUtils.getDummyProject(name = request.name, ownerId = userId)
-        Future.successful(Right(newProject))
+      case WithException(exc) => Future.failed(exc)
+      case _                  => Future.successful(TestProjectUtils.getDummyProject(name = request.name, ownerId = userId))
     }
 
   def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
@@ -55,7 +54,10 @@ class ProjectServiceTestImpl(projects: Seq[Project], testMode: TestMode) extends
 
 object ProjectServiceTestImpl {
 
-  def apply(testProjects: Project*)(implicit testMode: TestMode = Success): ProjectServiceTestImpl =
-    new ProjectServiceTestImpl(testProjects, testMode)
+  def apply(projects: Project*): ProjectServiceTestImpl =
+    new ProjectServiceTestImpl(projects = projects, testMode = Success)
+
+  def withException(exception: Throwable): ProjectServiceTestImpl =
+    new ProjectServiceTestImpl(projects = Seq.empty, testMode = WithException(exception))
 
 }
